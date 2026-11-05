@@ -1,0 +1,1 @@
+run_id,status,owner,model_id,model_revision,method,config_path,seed,split_sha256,code_commit_or_patch_sha256,gpu_name,trainable_parameters,train_steps,validation_samples,numeric_exact_match,validation_loss,parse_failure_rate,generation_truncation_rate,peak_allocated_bytes,peak_reserved_bytes,training_seconds,gpu_hours_total,notes

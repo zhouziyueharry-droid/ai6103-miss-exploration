@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "status": "plan_only_not_gpu_validated",
+  "purpose": "six-person team, three-person MiSS preliminary optimization exploration",
+  "model": {
+    "id": "Qwen/Qwen3-1.7B",
+    "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "dtype": "bfloat16",
+    "attn_implementation": "sdpa",
+    "enable_thinking": false,
+    "trust_remote_code": false
+  },
+  "data": {
+    "id": "openai/gsm8k",
+    "config": "main",
+    "revision": "740312add88f781978c0658806c59bc2815b9866",
+    "source_train_split": "train",
+    "validation_fraction": 0.1,
+    "split_seed": 2026,
+    "train_subset": 2048,
+    "validation_subset": 128,
+    "use_official_test": false,
+    "response_only_loss": true,
+    "strip_calculator_annotations": true,
+    "answer_format": "#### number"
+  },
+  "adapter": {
+    "method": "miss",
+    "r": 16,
+    "init_weights": true,
+    "miss_dropout": 0.0,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+  },
+  "training": {
+    "seeds": [
+      42,
+      43
+    ],
+    "max_steps": 200,
+    "max_length": 1024,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "learning_rate": 0.0002,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0,
+    "gradient_checkpointing": true,
+    "use_cache": false,
+    "bf16": true,
+    "report_to": "none"
+  },
+  "evaluation": {
+    "enable_thinking": false,
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "metric": "strict_numeric_exact_match_after_last_hash_marker",
+    "also_record": [
+      "validation_loss",
+      "answer_parse_failure_rate",
+      "generation_truncation_rate",
+      "peak_allocated_bytes",
+      "peak_reserved_bytes",
+      "training_seconds",
+      "training_tokens",
+      "trainable_parameters",
+      "paired_predictions"
+    ]
+  },
+  "exploration": {
+    "gpu_hours_cap_for_direction": 8,
+    "time_overhead_review_threshold_fraction": 0.2,
+    "positive_gain_claim_allowed": false
+  }
+}

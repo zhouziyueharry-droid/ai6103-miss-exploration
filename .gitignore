@@ -1,0 +1,24 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+.env
+.cache/
+.setup-downloads/
+data/raw/
+data/tokenized/
+models/
+results/runs/
+wandb/
+*.safetensors
+*.bin
+# 下载快照通过 sources.lock.json 记录；不要误提交大量第三方文件。
+third_party/miss-author/
+third_party/peft/
+archive/
+# 本地资料与清理记录不发布；论文通过固定来源下载。
+papers/*.pdf
+docs/CLEANUP_LOG.md
+.env.*
+*.pem
+*.key

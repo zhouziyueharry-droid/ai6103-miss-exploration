@@ -1,0 +1,10 @@
+# GPU 机器上的待验证依赖入口，不是已验收的 lockfile。
+# 先从 PyTorch 官方源安装与 GPU / 驱动相容的 torch。
+# 从项目根目录运行 pip install -r requirements-gpu.in。
+-e ./third_party/peft
+transformers>=4.51.0
+datasets
+accelerate
+safetensors
+numpy
+# 使用上游 miss_finetuning.py 时才额外安装 trl。
