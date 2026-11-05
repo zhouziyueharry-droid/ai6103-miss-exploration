@@ -2,6 +2,7 @@
 """Restore pinned public source snapshots and the paper. No weights or training."""
 import hashlib
 import json
+import posixpath
 import shutil
 import tarfile
 import tempfile
@@ -28,12 +29,13 @@ def download(url, dest, expected):
 
 
 def extract_regular_files(archive, destination):
-    # GitHub source archives have one root folder. Reject links and path traversal.
+    # Materialize internal file links; never create filesystem symlinks.
     with tarfile.open(archive, 'r:gz') as tar:
         members = tar.getmembers()
         roots = {PurePosixPath(m.name).parts[0] for m in members if m.name}
         if len(roots) != 1:
             raise RuntimeError('Expected a single archive root')
+        archive_root = next(iter(roots))
         for member in members:
             parts = PurePosixPath(member.name).parts
             if member.name.startswith('/') or '..' in parts:
@@ -43,11 +45,26 @@ def extract_regular_files(archive, destination):
             target = destination.joinpath(*parts[1:])
             if member.isdir():
                 target.mkdir(parents=True, exist_ok=True)
-            elif member.isfile():
+            elif member.isfile() or member.issym() or member.islnk():
+                source_member = member
+                visited = set()
+                while source_member.issym() or source_member.islnk():
+                    if source_member.name in visited:
+                        raise RuntimeError('Cyclic archive link')
+                    visited.add(source_member.name)
+                    link_name = source_member.linkname
+                    if source_member.issym():
+                        link_name = posixpath.join(posixpath.dirname(source_member.name), link_name)
+                    link_name = posixpath.normpath(link_name)
+                    if not link_name.startswith(archive_root + '/'):
+                        raise RuntimeError('Archive link escapes source root')
+                    source_member = tar.getmember(link_name)
+                if not source_member.isfile():
+                    raise RuntimeError('Archive link must resolve to a regular file')
                 target.parent.mkdir(parents=True, exist_ok=True)
-                with tar.extractfile(member) as source, target.open('wb') as out:
+                with tar.extractfile(source_member) as source, target.open('wb') as out:
                     shutil.copyfileobj(source, out)
-                target.chmod(member.mode & 0o777)
+                target.chmod(source_member.mode & 0o777)
             else:
                 raise RuntimeError('Links or special files are not accepted: ' + member.name)
 
